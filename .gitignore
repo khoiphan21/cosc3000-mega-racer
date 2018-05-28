@@ -1,0 +1,6 @@
+# Data files
+data
+*.pdf
+*.stackdump
+.idea
+__pycache__
