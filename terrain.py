@@ -10,7 +10,7 @@ from lab_utils import vec3, vec2
 from ObjModel import ObjModel
 
 # returned by getInfoAt to provide easy access to height and material type on the terrain for use
-# by the game logic.
+# by the world logic.
 class TerrainInfo:
     M_Road = 0 
     M_Rough = 1
@@ -242,7 +242,7 @@ class Terrain:
         
         # TODO 1.4: Load texture and configure the sampler
 
-    # Called by the game to drawt he UI widgets for the terrain.
+    # Called by the world to drawt he UI widgets for the terrain.
     def drawUi(self):
         # height scale is read-only as it is not run-time changable (since we use it to compute normals at load-time)
         imgui.label_text("terrainHeightScale", "%0.2f"%self.heightScale)

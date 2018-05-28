@@ -4,3 +4,6 @@ data
 *.stackdump
 .idea
 __pycache__
+
+# Visual Studio stuff
+settings.json

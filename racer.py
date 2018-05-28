@@ -6,14 +6,26 @@ from PIL import Image
 import imgui
 
 import lab_utils as lu
-from lab_utils import vec3, vec2
+from lab_utils import vec3, vec2, make_mat4_from_zAxis
 from terrain import TerrainInfo
 from ObjModel import ObjModel
 
+
+# ViewParams is used to contain the needed data to represent a 'view' mostly we want to get at the
+# projection and world-to-view transform, as these are used in all shaders. Keeping them in one
+# object makes it easier to pass around. It is also convenient future-proofing if we want to add more
+# views (e.g., for a shadow map).
+class ViewParams:
+    viewToClipTransform = lu.Mat4()
+    worldToViewTransform = lu.Mat4()
+    width = 0
+    height = 0
+
+
 class Racer:
-    position = vec3(0,0,0)
-    velocity = vec3(0,0,0)
-    heading = vec3(1,0,0)
+    position = vec3(0, 0, 0)
+    velocity = vec3(0, 0, 0)
+    heading = vec3(1, 0, 0)
     speed = 0.0
 
     maxSpeedRoad = 50.0
@@ -25,13 +37,13 @@ class Racer:
     model = None
 
     def render(self, view, renderingSystem):
-        # TODO 1.3: This is a good place to draw the racer model instead of the sphere
-        lu.drawSphere(self.position, 1.5, [1,0,0,1], view)
+        renderingSystem.drawObjModel(self.model, make_mat4_from_zAxis(self.position, self.heading, [0.0, 0.0, 1.0]),
+                                     view)
 
     def load(self, objModelName, terrain, renderingSystem):
         self.terrain = terrain
         self.position = terrain.startLocations[0]
-        # TODO 1.3: This is a good place create and load the racer model
+        self.model = ObjModel(objModelName)
 
     def update(self, dt, keyStateMap):
         info = self.terrain.getInfoAt(self.position);
@@ -43,7 +55,7 @@ class Racer:
             targetVel = self.heading * maxSpeed;
         if keyStateMap["DOWN"]:
             targetVel = self.heading * -maxSpeed;
-        
+
         # linearly interpolate towards the target velocity - this means it is tied to the frame rate, which kind of is bad.
         self.velocity = lu.mix(self.velocity, targetVel, 0.01)
 
@@ -56,7 +68,6 @@ class Racer:
             rotationMat = lu.make_rotation_z(dt * -self.angvel)
 
         self.heading = lu.Mat3(rotationMat) * self.heading
-        print(self.heading)
 
         # get height of ground at this point.
 
@@ -65,5 +76,4 @@ class Racer:
         self.position[2] = lu.mix(self.position[2], info.height + self.zOffset, 0.1);
 
     def drawUi(self):
-        imgui.label_text("Speed", "%0.1fm/s"%self.speed)
-
+        imgui.label_text("Speed", "%0.1fm/s" % self.speed)
