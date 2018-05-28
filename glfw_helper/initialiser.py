@@ -1,16 +1,9 @@
 """Initialise the GLFW windows and world UI"""
 
-import sys
-
-from OpenGL.GL import GL_TRUE
 from OpenGL.GL import *
 import glfw
 
-import numpy as np
-from ctypes import sizeof, c_float, c_void_p, c_uint, string_at
-import math
 import sys
-from PIL import Image
 
 import imgui
 
@@ -19,18 +12,12 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from imgui.integrations.glfw import GlfwRenderer as ImGuiGlfwRenderer
 
-from lab_utils import Mat3, Mat4, make_translation, normalize
-
-from ObjModel import ObjModel
-import lab_utils as lu
-from lab_utils import vec3, vec2
-
-from terrain import Terrain
-from racer import Racer
+from models.terrain import Terrain
+from models.racer import Racer
 from helper import renderFrame, update, RenderingSystem
 from .mappings import GLFW_KEYMAP, GLFW_MOUSE_MAP
 
-from mega_racer import World
+from models.world import World
 
 
 START_WIDTH  = 1280

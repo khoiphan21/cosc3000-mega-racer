@@ -12,7 +12,7 @@ from ObjModel import ObjModel
 import lab_utils as lu
 from lab_utils import vec3
 
-from mega_racer import World
+from models.world import World
 
 
 #
@@ -77,24 +77,24 @@ class RenderingSystem:
         modelToViewNormalTransform = lu.inverse(lu.transpose(lu.Mat3(modelToViewTransform)))
 
         # Set the standard transforms, these vary per object and must be set each time an object is drawn (since they have different modelToWorld transforms)
-        lu.setUniform(shader, "modelToClipTransform", modelToClipTransform);
-        lu.setUniform(shader, "modelToViewTransform", modelToViewTransform);
-        lu.setUniform(shader, "modelToViewNormalTransform", modelToViewNormalTransform);
+        lu.setUniform(shader, "modelToClipTransform", modelToClipTransform)
+        lu.setUniform(shader, "modelToViewTransform", modelToViewTransform)
+        lu.setUniform(shader, "modelToViewNormalTransform", modelToViewNormalTransform)
 
         # These transforms are the same for the current view and could be set once for all the objects
-        lu.setUniform(shader, "worldToViewTransform", view.worldToViewTransform);
-        lu.setUniform(shader, "viewToClipTransform", view.viewToClipTransform);
+        lu.setUniform(shader, "worldToViewTransform", view.worldToViewTransform)
+        lu.setUniform(shader, "viewToClipTransform", view.viewToClipTransform)
         # Lighting parameters as could these
-        viewSpaceLightPosition = lu.transformPoint(view.worldToViewTransform, self.world.g_sunPosition);
-        lu.setUniform(shader, "viewSpaceLightPosition", viewSpaceLightPosition);
-        lu.setUniform(shader, "globalAmbientLight", self.world.g_globalAmbientLight);
-        lu.setUniform(shader, "sunLightColour", self.world.g_sunLightColour);
+        viewSpaceLightPosition = lu.transformPoint(view.worldToViewTransform, self.world.sun_position)
+        lu.setUniform(shader, "viewSpaceLightPosition", viewSpaceLightPosition)
+        lu.setUniform(shader, "globalAmbientLight", self.world.global_ambient_light)
+        lu.setUniform(shader, "sunLightColour", self.world.sunlight_color)
 
     def drawObjModel(self, model, modelToWorldTransform, view):
         # Bind the shader program such that we can set the uniforms (model.render sets it again)
         glUseProgram(self.objModelShader)
 
-        self.setCommonUniforms(self.objModelShader, view, modelToWorldTransform);
+        self.setCommonUniforms(self.objModelShader, view, modelToWorldTransform)
 
         model.render(self.objModelShader)
 
@@ -194,11 +194,11 @@ def sampleKeyFrames(t, kfs):
 
     for i1 in range(1, len(kfs)):
         if t < kfs[i1][0]:
-            i0 = i1 - 1;
-            t0 = kfs[i0][0];
-            t1 = kfs[i1][0];
+            i0 = i1 - 1
+            t0 = kfs[i0][0]
+            t1 = kfs[i1][0]
             # linear interpolation from one to the other
-            return lu.mix(kfs[i0][1], kfs[i1][1], (t - t0) / (t1 - t0));
+            return lu.mix(kfs[i0][1], kfs[i1][1], (t - t0) / (t1 - t0))
 
     # we should not get here, unless the key values are malformed (i.e., not strictly increasing)
     assert False
@@ -208,23 +208,23 @@ def sampleKeyFrames(t, kfs):
 
 def update(world: World, g_renderingSystem: RenderingSystem, dt, keyStateMap, mouseDelta):
 
-    if world.g_updateSun:
-        world.g_sunAngle += dt * 0.25
-        world.g_sunAngle = world.g_sunAngle % (2.0 * math.pi)
+    if world.should_update_sun:
+        world.sun_angle += dt * 0.25
+        world.sun_angle = world.sun_angle % (2.0 * math.pi)
 
-    world.g_sunPosition = lu.Mat3(lu.make_rotation_x(world.g_sunAngle)) * world.g_sunStartPosition
+    world.sun_position = lu.Mat3(lu.make_rotation_x(world.sun_angle)) * world.sun_start_position
 
-    world.g_sunLightColour = sampleKeyFrames(lu.dot(lu.normalize(world.g_sunPosition), vec3(0.0, 0.0, 1.0)), world.g_sunKeyFrames)
-    world.g_globalAmbientLight = sampleKeyFrames(lu.dot(lu.normalize(world.g_sunPosition), vec3(0.0, 0.0, 1.0)), world.g_ambientKeyFrames)
+    world.sunlight_color = sampleKeyFrames(lu.dot(lu.normalize(world.sun_position), vec3(0.0, 0.0, 1.0)), world.sun_keyframes)
+    world.global_ambient_light = sampleKeyFrames(lu.dot(lu.normalize(world.sun_position), vec3(0.0, 0.0, 1.0)), world.ambient_keyframes)
 
     world.racer.update(dt, keyStateMap)
 
-    world.g_viewPosition = world.racer.position - (world.racer.heading * world.g_followCamOffset) + [0, 0, world.g_followCamOffset]
-    world.g_viewTarget = world.racer.position + vec3(0, 0, world.g_followCamLookOffset)
+    world.view_position = world.racer.position - (world.racer.heading * world.follow_cam_offset) + [0, 0, world.follow_cam_offset]
+    world.view_target = world.racer.position + vec3(0, 0, world.follow_cam_look_offset)
 
     if imgui.tree_node("Camera", imgui.TREE_NODE_DEFAULT_OPEN):
-        _, world.g_followCamOffset = imgui.slider_float("FollowCamOffset ", world.g_followCamOffset, 2.0, 100.0)
-        _, world.g_followCamLookOffset = imgui.slider_float("FollowCamLookOffset", world.g_followCamLookOffset, 0.0, 100.0)
+        _, world.follow_cam_offset = imgui.slider_float("FollowCamOffset ", world.follow_cam_offset, 2.0, 100.0)
+        _, world.follow_cam_look_offset = imgui.slider_float("FollowCamLookOffset", world.follow_cam_look_offset, 0.0, 100.0)
         imgui.tree_pop()
 
     if imgui.tree_node("Racer", imgui.TREE_NODE_DEFAULT_OPEN):
@@ -236,19 +236,19 @@ def update(world: World, g_renderingSystem: RenderingSystem, dt, keyStateMap, mo
         imgui.tree_pop()
 
     if imgui.tree_node("Lighting", imgui.TREE_NODE_DEFAULT_OPEN):
-        _, world.g_globalAmbientLight = lu.imguiX_color_edit3_list("GlobalAmbientLight",
-                                                                   world.g_globalAmbientLight)  # , imgui.GuiColorEditFlags_Float);// | ImGuiColorEditFlags_HSV);
-        _, world.g_sunLightColour = lu.imguiX_color_edit3_list("SunLightColour",
-                                                               world.g_sunLightColour)  # , imgui.GuiColorEditFlags_Float);// | ImGuiColorEditFlags_HSV);
-        _, world.g_sunAngle = imgui.slider_float("SunAngle", world.g_sunAngle, 0.0, 2.0 * math.pi)
-        _, world.g_updateSun = imgui.checkbox("UpdateSun", world.g_updateSun)
+        _, world.global_ambient_light = lu.imguiX_color_edit3_list("GlobalAmbientLight",
+                                                                   world.global_ambient_light)  # , imgui.GuiColorEditFlags_Float);// | ImGuiColorEditFlags_HSV);
+        _, world.sunlight_color = lu.imguiX_color_edit3_list("SunLightColour",
+                                                             world.sunlight_color)  # , imgui.GuiColorEditFlags_Float);// | ImGuiColorEditFlags_HSV);
+        _, world.sun_angle = imgui.slider_float("SunAngle", world.sun_angle, 0.0, 2.0 * math.pi)
+        _, world.should_update_sun = imgui.checkbox("UpdateSun", world.should_update_sun)
         imgui.tree_pop()
 
 
 # Called once per frame by the main loop below
 def renderFrame(game: World, rendering_system: RenderingSystem, width, height):
     glViewport(0, 0, width, height)
-    glClearColor(game.g_backGroundColour[0], game.g_backGroundColour[1], game.g_backGroundColour[2], 1.0)
+    glClearColor(game.background_color[0], game.background_color[1], game.background_color[2], 1.0)
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT)
 
     aspectRatio = float(width) / float(height)
@@ -259,9 +259,9 @@ def renderFrame(game: World, rendering_system: RenderingSystem, width, height):
     # views (e.g., for a shadow map).
     view = ViewParams()
     # Projection (view to clip space transform)
-    view.viewToClipTransform = lu.make_perspective(game.g_fov, aspectRatio, game.g_nearDistance, game.g_farDistance)
+    view.viewToClipTransform = lu.make_perspective(game.field_of_view, aspectRatio, game.near_distance, game.far_distance)
     # Transform from world space to view space.
-    view.worldToViewTransform = lu.make_lookAt(game.g_viewPosition, game.g_viewTarget, game.g_viewUp)
+    view.worldToViewTransform = lu.make_lookAt(game.view_position, game.view_target, game.view_up)
     view.width = width
     view.height = height
 

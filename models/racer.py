@@ -1,13 +1,8 @@
-from OpenGL.GL import *
-import glfw
-import numpy as np
-import math
-from PIL import Image
 import imgui
 
 import lab_utils as lu
-from lab_utils import vec3, vec2, make_mat4_from_zAxis
-from terrain import TerrainInfo
+from lab_utils import vec3, make_mat4_from_zAxis
+from models.terrain import TerrainInfo
 from ObjModel import ObjModel
 
 
