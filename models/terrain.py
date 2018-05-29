@@ -46,8 +46,10 @@ class Terrain:
 
     # Texture unit allocations:
     TU_Grass = 0
+    TU_rock_high = 1
 
-    texture_id = None
+    texture_id_grass = None
+    texture_id_rock_high = None
 
 
     def render(self, view, renderingSystem):
@@ -62,9 +64,15 @@ class Terrain:
         lu.setUniform(self.shader, "xyOffset", xyOffset)
 
         # TODO 1.4: Bind the grass texture to the right texture unit, hint: lu.bindTexture
-        # texture_id = glGenTextures(1)
+        # texture_id_grass = glGenTextures(1)
         glActiveTexture(GL_TEXTURE0 + self.TU_Grass)
-        glBindTexture(GL_TEXTURE_2D, self.texture_id)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id_grass)
+
+        # Bind other textures
+        glActiveTexture(GL_TEXTURE0 + self.TU_rock_high)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id_rock_high)
+
+
 
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -75,6 +83,10 @@ class Terrain:
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(0)
+
+        glUniform1i(glGetUniformLocation(self.shader, "ourTexture"), self.TU_Grass)
+        glUniform1i(glGetUniformLocation(self.shader, "rockHighTexture"), self.TU_rock_high)
+
         glUseProgram(0)
 
     def load(self, imageName, renderingSystem):
@@ -191,7 +203,11 @@ class Terrain:
         # TODO 1.4: Load texture and configure the sampler
         texture_file = 'data/grass2.png'
         base_path, filename = os.path.split(texture_file)
-        self.texture_id = ObjModel.loadTexture(filename, base_path, True)
+        self.texture_id_grass = ObjModel.loadTexture(filename, base_path, True)
+
+        texture_file = 'data/rock 2.png'
+        base_path, filename = os.path.split(texture_file)
+        self.texture_id_rock_high = ObjModel.loadTexture(filename, base_path, True)
 
 
     # Called by the world to drawt he UI widgets for the terrain.
@@ -221,4 +237,4 @@ class Terrain:
         info = TerrainInfo();
         info.height = float(imagePixel[0]) * self.heightScale / 255.0;
         info.material = TerrainInfo.M_Road if imagePixel[2] == 255 else TerrainInfo.M_Rough
-        return info;
+        return info

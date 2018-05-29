@@ -13,15 +13,25 @@ uniform float terrainHeightScale;
 uniform float terrainTextureXyScale;
 
 uniform sampler2D ourTexture;
+uniform sampler2D rockHighTexture;
 
 out vec4 fragmentColor;
 
 void main()
-{
-    vec3 materialColour = texture(ourTexture, vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale)).xyz;
-    // vec3 materialColour = vec3(v2f_height/terrainHeightScale);
+{   
     // TODO 1.4: Compute the texture coordinates and sample the texture for the 
     // grass and use as material colour.
+    vec2 textCoord = vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale);
+
+    vec4 mixedTexture = mix(
+        texture(ourTexture, textCoord),
+        texture(rockHighTexture, textCoord),
+        0.5
+        // v2f_height/terrainHeightScale
+    );
+    vec3 materialColour = mixedTexture.xyz;
+    // vec3 materialColour = texture(ourTexture, textCoord).xyz;
+
 
     vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, 
         v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
