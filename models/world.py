@@ -1,4 +1,7 @@
-from lab_utils import vec3
+from utils.lab_utils import vec3
+
+from models.terrain import Terrain
+from models.racer import Racer
 
 
 class World:
@@ -23,8 +26,8 @@ class World:
     should_update_sun = True
     sun_angle = 0.0
 
-    terrain = None
-    racer = None
+    terrain: Terrain = None
+    racer: Racer = None
 
     #
     # Key-frames for the sun light and ambient, picked by hand-waving to look ok.

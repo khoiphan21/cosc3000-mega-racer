@@ -2,8 +2,8 @@ import imgui
 from OpenGL.GL import *
 from PIL import Image
 
-import lab_utils as lu
-from lab_utils import vec3, vec2
+from utils import lab_utils as lu
+from utils.lab_utils import vec3, vec2
 
 
 TERRAIN_VERTEX_SHADER_PATH = 'shaders/terrain/vertexShader.glsl'
@@ -55,17 +55,19 @@ class Terrain:
         lu.setUniform(self.shader, "xyOffset", xyOffset)
 
         # TODO 1.4: Bind the grass texture to the right texture unit, hint: lu.bindTexture
+        texture_id = glGenTextures(1)
+        lu.bindTexture(self.TU_Grass, texture_id)
 
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-            glLineWidth(1.0);
+            glLineWidth(1.0)
         glBindVertexArray(self.vertexArrayObject)
         glDrawElements(GL_TRIANGLES, len(self.terrainInds), GL_UNSIGNED_INT, None)
 
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glBindVertexArray(0);
-        glUseProgram(0);
+        glBindVertexArray(0)
+        glUseProgram(0)
 
     def load(self, imageName, renderingSystem):
         with Image.open(imageName)  as im:
@@ -155,18 +157,18 @@ class Terrain:
             self.terrainInds = terrainInds
 
             self.vertexArrayObject = lu.createVertexArrayObject();
-            self.vertexDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainVerts, 0);
-            self.normalDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainNormals, 1);
-            self.indexDataBuffer = lu.createAndAddIndexArray(self.vertexArrayObject, terrainInds);
+            self.vertexDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainVerts, 0)
+            self.normalDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainNormals, 1)
+            self.indexDataBuffer = lu.createAndAddIndexArray(self.vertexArrayObject, terrainInds)
 
             # normalDataBuffer = createAndAddVertexArrayData<vec4>(g_particleVao, { vec4(0.0f) }, 1);
 
-        # Get the vertexShader and fragmentShader
+        # Get the vertexShader and fragmentShader from the files
         with open(TERRAIN_VERTEX_SHADER_PATH) as file:
             vertexShader = ''.join(file.readlines())
         with open(TERRAIN_FRAGMENT_SHADER_PATH) as file:
             fragmentShader = ''.join(file.readlines())
-            
+
         # Note how we provide lists of source code strings for the two shader stages.
         # This is basically the only standard way to 'include' or 'import' code into more than one shader. The variable renderingSystem.commonFragmentShaderCode
         # contains code that we wish to use in all the fragment shaders, for example code to transform the colour output to srgb.
@@ -176,6 +178,7 @@ class Terrain:
                                      {"positionIn": 0, "normalIn": 1})
 
         # TODO 1.4: Load texture and configure the sampler
+
 
     # Called by the world to drawt he UI widgets for the terrain.
     def draw_ui(self):

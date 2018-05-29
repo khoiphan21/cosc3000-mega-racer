@@ -1,7 +1,7 @@
 import imgui
 
-import lab_utils as lu
-from lab_utils import vec3, make_mat4_from_zAxis
+from utils import lab_utils as lu
+from utils.lab_utils import vec3, make_mat4_from_zAxis
 from models.terrain import TerrainInfo
 from ObjModel import ObjModel
 

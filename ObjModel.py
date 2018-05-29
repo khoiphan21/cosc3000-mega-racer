@@ -4,7 +4,7 @@ from ctypes import c_float
 from OpenGL.GL import *
 from PIL import Image
 
-import lab_utils as lu
+from utils import lab_utils as lu
 
 
 def flatten(*lll):

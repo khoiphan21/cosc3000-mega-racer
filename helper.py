@@ -9,8 +9,8 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from ObjModel import ObjModel
-import lab_utils as lu
-from lab_utils import vec3
+from utils import lab_utils as lu
+from utils.lab_utils import vec3
 
 from models.world import World
 
