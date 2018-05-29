@@ -51,7 +51,7 @@ class MegaRacer:
         world.terrain.load("data/track_01_128.png", rendering_system)
 
         world.racer = Racer()
-        world.racer.load("data/racer_02.obj", world.terrain, rendering_system)
+        world.racer.load("data/racer_02.obj", world.terrain)
 
         current_time = glfw.get_time()
         prev_mouse_x, prev_mouse_y = glfw.get_cursor_pos(window)

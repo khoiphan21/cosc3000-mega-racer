@@ -228,11 +228,11 @@ def update(world: World, g_renderingSystem: RenderingSystem, dt, keyStateMap, mo
         imgui.tree_pop()
 
     if imgui.tree_node("Racer", imgui.TREE_NODE_DEFAULT_OPEN):
-        world.racer.drawUi()
+        world.racer.draw_ui()
         imgui.tree_pop()
 
     if imgui.tree_node("Terrain", imgui.TREE_NODE_DEFAULT_OPEN):
-        world.terrain.drawUi()
+        world.terrain.draw_ui()
         imgui.tree_pop()
 
     if imgui.tree_node("Lighting", imgui.TREE_NODE_DEFAULT_OPEN):
