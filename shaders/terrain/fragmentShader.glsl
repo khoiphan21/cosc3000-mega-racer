@@ -7,6 +7,7 @@ in VertexData
     vec3 v2f_viewSpacePosition;
     vec3 v2f_viewSpaceNormal;
     vec3 v2f_worldSpacePosition;
+    vec3 v2f_normalIn;
 };
 
 uniform float terrainHeightScale;
@@ -14,6 +15,7 @@ uniform float terrainTextureXyScale;
 
 uniform sampler2D ourTexture;
 uniform sampler2D rockHighTexture;
+uniform sampler2D slopeTexture;
 
 out vec4 fragmentColor;
 
@@ -37,6 +39,19 @@ void main()
         ratio
     );
     vec3 materialColour = mixedTexture.xyz;
+
+    // Now check viewspace normal to see if the texture should be slope instead
+    float cosine = dot(v2f_normalIn, 
+            vec3(v2f_normalIn.x, 0.0, v2f_normalIn.z)
+        );
+    if (cosine < 0.6) {
+            materialColour = mix(
+            texture(ourTexture, textCoord),
+            texture(slopeTexture, textCoord),
+            0.3 * cosine
+        ).xyz;
+    }
+
     // vec3 materialColour = texture(ourTexture, textCoord).xyz;
 
 

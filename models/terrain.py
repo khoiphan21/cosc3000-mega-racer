@@ -47,9 +47,11 @@ class Terrain:
     # Texture unit allocations:
     TU_Grass = 0
     TU_rock_high = 1
+    TU_slope = 2
 
     texture_id_grass = None
     texture_id_rock_high = None
+    texture_id_slope = None
 
 
     def render(self, view, renderingSystem):
@@ -71,6 +73,8 @@ class Terrain:
         # Bind other textures
         glActiveTexture(GL_TEXTURE0 + self.TU_rock_high)
         glBindTexture(GL_TEXTURE_2D, self.texture_id_rock_high)
+        glActiveTexture(GL_TEXTURE0 + self.TU_slope)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id_slope)
 
 
 
@@ -86,6 +90,7 @@ class Terrain:
 
         glUniform1i(glGetUniformLocation(self.shader, "ourTexture"), self.TU_Grass)
         glUniform1i(glGetUniformLocation(self.shader, "rockHighTexture"), self.TU_rock_high)
+        glUniform1i(glGetUniformLocation(self.shader, "slopeTexture"), self.TU_slope)
 
         glUseProgram(0)
 
@@ -208,6 +213,11 @@ class Terrain:
         texture_file = 'data/rock 2.png'
         base_path, filename = os.path.split(texture_file)
         self.texture_id_rock_high = ObjModel.loadTexture(filename, base_path, True)
+
+        texture_file = 'data/rock 5.png'
+        base_path, filename = os.path.split(texture_file)
+        self.texture_id_slope = ObjModel.loadTexture(filename, base_path, True)
+
 
 
     # Called by the world to drawt he UI widgets for the terrain.
