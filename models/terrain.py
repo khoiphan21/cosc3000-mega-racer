@@ -1,18 +1,15 @@
-from OpenGL.GL import *
-import glfw
-import numpy as np
-import math
-from PIL import Image
 import imgui
+from OpenGL.GL import *
+from PIL import Image
 
 import lab_utils as lu
 from lab_utils import vec3, vec2
-from ObjModel import ObjModel
+
 
 # returned by getInfoAt to provide easy access to height and material type on the terrain for use
 # by the world logic.
 class TerrainInfo:
-    M_Road = 0 
+    M_Road = 0
     M_Rough = 1
     height = 0.0
     material = 0
@@ -32,7 +29,7 @@ class Terrain:
 
     # Lists of locations generated from the map texture green channel (see the 'load' method)
     # you can add any other meaning of other values as you see fit.
-    
+
     # Locations to place racers at (the start-grid if you will)
     startLocations = []
     # Locations where trees might be put down (the demo implementation samples these randomly)
@@ -54,7 +51,7 @@ class Terrain:
         xyOffset = -(vec2(self.imageWidth, self.imageHeight) + vec2(1.0)) * self.xyScale / 2.0
         lu.setUniform(self.shader, "xyOffset", xyOffset)
 
-        #TODO 1.4: Bind the grass texture to the right texture unit, hint: lu.bindTexture
+        # TODO 1.4: Bind the grass texture to the right texture unit, hint: lu.bindTexture
 
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -66,7 +63,6 @@ class Terrain:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glBindVertexArray(0);
         glUseProgram(0);
-
 
     def load(self, imageName, renderingSystem):
         with Image.open(imageName)  as im:
@@ -82,7 +78,7 @@ class Terrain:
                 for i in range(self.imageWidth):
                     offset = (j * self.imageWidth + i) * 4
                     # copy pixel 4 channels
-                    imagePixel = self.imageData[offset:offset+4];
+                    imagePixel = self.imageData[offset:offset + 4];
                     # Normalize the red channel from [0,255] to [0.0, 1.0]
                     red = float(imagePixel[0]) / 255.0;
 
@@ -126,25 +122,23 @@ class Terrain:
 
                     terrainNormals[j * self.imageWidth + i] = lu.normalize(nP + nD);
 
-
-
             # join verts with quads that is: 2 triangles @ 3 vertices, with one less in each direction.
             terrainInds = [0] * 2 * 3 * (self.imageWidth - 1) * (self.imageHeight - 1)
             for j in range(0, self.imageHeight - 1):
                 for i in range(0, self.imageWidth - 1):
-				    # Vertex indices to the four corners of the quad.
-                    qInds =[
-					    j * self.imageWidth + i,
-					    j * self.imageWidth + i + 1,
-					    (j + 1) * self.imageWidth + i,
-					    (j + 1) * self.imageWidth + i + 1,
-				    ]
+                    # Vertex indices to the four corners of the quad.
+                    qInds = [
+                        j * self.imageWidth + i,
+                        j * self.imageWidth + i + 1,
+                        (j + 1) * self.imageWidth + i,
+                        (j + 1) * self.imageWidth + i + 1,
+                    ]
                     outOffset = 3 * 2 * (j * (self.imageWidth - 1) + i);
                     points = [
-					    terrainVerts[qInds[0]],
-					    terrainVerts[qInds[1]],
-					    terrainVerts[qInds[2]],
-					    terrainVerts[qInds[3]],
+                        terrainVerts[qInds[0]],
+                        terrainVerts[qInds[1]],
+                        terrainVerts[qInds[2]],
+                        terrainVerts[qInds[3]],
                     ]
                     # output first triangle:
                     terrainInds[outOffset + 0] = qInds[0];
@@ -154,7 +148,7 @@ class Terrain:
                     terrainInds[outOffset + 3] = qInds[2];
                     terrainInds[outOffset + 4] = qInds[1];
                     terrainInds[outOffset + 5] = qInds[3];
-            
+
             self.terrainInds = terrainInds
 
             self.vertexArrayObject = lu.createVertexArrayObject();
@@ -162,9 +156,7 @@ class Terrain:
             self.normalDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainNormals, 1);
             self.indexDataBuffer = lu.createAndAddIndexArray(self.vertexArrayObject, terrainInds);
 
-            #normalDataBuffer = createAndAddVertexArrayData<vec4>(g_particleVao, { vec4(0.0f) }, 1);
-
-
+            # normalDataBuffer = createAndAddVertexArrayData<vec4>(g_particleVao, { vec4(0.0f) }, 1);
 
         vertexShader = """
             #version 330
@@ -238,20 +230,21 @@ class Terrain:
         # This is basically the only standard way to 'include' or 'import' code into more than one shader. The variable renderingSystem.commonFragmentShaderCode
         # contains code that we wish to use in all the fragment shaders, for example code to transform the colour output to srgb.
         # It is also a nice place to put code to compute lighting and other effects that should be the same accross the terrain and racer for example.
-        self.shader = lu.buildShader([vertexShader], ["#version 330\n", renderingSystem.commonFragmentShaderCode, fragmentShader], {"positionIn" : 0, "normalIn" : 1})
-        
+        self.shader = lu.buildShader([vertexShader],
+                                     ["#version 330\n", renderingSystem.commonFragmentShaderCode, fragmentShader],
+                                     {"positionIn": 0, "normalIn": 1})
+
         # TODO 1.4: Load texture and configure the sampler
 
     # Called by the world to drawt he UI widgets for the terrain.
-    def drawUi(self):
+    def draw_ui(self):
         # height scale is read-only as it is not run-time changable (since we use it to compute normals at load-time)
-        imgui.label_text("terrainHeightScale", "%0.2f"%self.heightScale)
-        #_,self.heightScale = imgui.slider_float("terrainHeightScale", self.heightScale, 1.0, 100.0)
-        _,self.textureXyScale = imgui.slider_float("terrainTextureXyScale", self.textureXyScale, 0.01, 10.0)
-        _,self.renderWireFrame = imgui.checkbox("WireFrame", self.renderWireFrame);
+        imgui.label_text("terrainHeightScale", "%0.2f" % self.heightScale)
+        # _,self.heightScale = imgui.slider_float("terrainHeightScale", self.heightScale, 1.0, 100.0)
+        _, self.textureXyScale = imgui.slider_float("terrainTextureXyScale", self.textureXyScale, 0.01, 10.0)
+        _, self.renderWireFrame = imgui.checkbox("WireFrame", self.renderWireFrame);
 
-
-    # Retrieves information about the terrain at some x/y world-space position, if you request info from outside 
+    # Retrieves information about the terrain at some x/y world-space position, if you request info from outside
     # the track it just clamps the position to the edge of the track.
     # Returns an instance of the class TerrainInfo.
     # An improvement that would make the movement of the racer smoother is to bi-linearly interpolate the image data.
@@ -265,7 +258,7 @@ class Terrain:
         y = max(0, min(self.imageHeight - 1, int(imageSpacePos[1])))
         pixelOffset = (y * self.imageWidth + x) * 4
         # copy pixel 4 channels
-        imagePixel = self.imageData[pixelOffset:pixelOffset+4]
+        imagePixel = self.imageData[pixelOffset:pixelOffset + 4]
 
         info = TerrainInfo();
         info.height = float(imagePixel[0]) * self.heightScale / 255.0;
