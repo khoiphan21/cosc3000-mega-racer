@@ -1,5 +1,5 @@
-import sys
 import math
+import sys
 from ctypes import c_float, c_uint
 
 import imgui
@@ -152,11 +152,11 @@ def make_rotation_z(angle):
 # (For some reason glm seems to lack this highly useful functionality)
 def make_mat4_from_zAxis(translation, zAxis, yAxis):
     # 1. the z axis is as given.
-    z = normalize(zAxis);
+    z = normalize(zAxis)
     # 2. the x axis is the cross product of the z axis and rough y azis, it is therefore perpendicular to both of these directions.
-    x = normalize(cross(yAxis, z));
+    x = normalize(cross(yAxis, z))
     # the y axis must be perpendicular to the other two axes, which is constructed using the cross product, (unless they are co-linear).
-    y = cross(z, x);
+    y = cross(z, x)
 
     # There's bound to be a nice and pythonic way to do this...
     return Mat4([[x[0], y[0], z[0], translation[0]],
@@ -253,7 +253,7 @@ def uploadFloatData(bufferObject, floatData):
 
 
 def createVertexArrayObject():
-    return glGenVertexArrays(1);
+    return glGenVertexArrays(1)
 
 
 def createAndAddVertexArrayData(vertexArrayObject, data, attributeIndex):
@@ -261,33 +261,33 @@ def createAndAddVertexArrayData(vertexArrayObject, data, attributeIndex):
     buffer = glGenBuffers(1)
     uploadFloatData(buffer, data)
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glVertexAttribPointer(attributeIndex, len(data[0]), GL_FLOAT, GL_FALSE, 0, None);
-    glEnableVertexAttribArray(attributeIndex);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer)
+    glVertexAttribPointer(attributeIndex, len(data[0]), GL_FLOAT, GL_FALSE, 0, None)
+    glEnableVertexAttribArray(attributeIndex)
 
     # Unbind the buffers again to avoid unintentianal GL state corruption (this is something that can be rather inconventient to debug)
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    glBindVertexArray(0)
 
     return buffer
 
 
 def createAndAddIndexArray(vertexArrayObject, indexData):
-    glBindVertexArray(vertexArrayObject);
+    glBindVertexArray(vertexArrayObject)
     indexBuffer = glGenBuffers(1)
-    glBindBuffer(GL_ARRAY_BUFFER, indexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, indexBuffer)
 
     data_buffer = (c_uint * len(indexData))(*indexData)
-    glBufferData(GL_ARRAY_BUFFER, data_buffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data_buffer, GL_STATIC_DRAW)
 
     # Bind the index buffer as the element array buffer of the VAO - this causes it to stay bound to this VAO - fairly unobvious.
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
 
     # Unbind the buffers again to avoid unintentianal GL state corruption (this is something that can be rather inconventient to debug)
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    glBindVertexArray(0)
 
-    return indexBuffer;
+    return indexBuffer
 
 
 def getShaderInfoLog(obj):
@@ -317,7 +317,7 @@ def compileAndAttachShader(shaderProgram, shaderType, sources):
 
     if not compileOk:
         err = getShaderInfoLog(shader)
-        print("SHADER COMPILE ERROR: '%s'" % err);
+        print("SHADER COMPILE ERROR: '%s'" % err)
         return False
 
     glAttachShader(shaderProgram, shader)
@@ -348,8 +348,9 @@ def buildShader(vertexShaderSources, fragmentShaderSources, attribLocs, fragData
         # this can yield errors, for example if the vertex and fragment shaders don't have compatible out and in 
         # variables (e.g., the fragment shader expects some data that the vertex shader is not outputting).
         glLinkProgram(shader)
-        linkStatus = glGetProgramiv(shader, GL_LINK_STATUS)
-        if not linkStatus:
+        # Now check if the linking was successful
+        success = glGetProgramiv(shader, GL_LINK_STATUS)
+        if not success:
             err = glGetProgramInfoLog(shader)
             print("SHADER LINKER ERROR: '%s'" % err)
             sys.exit(1)
@@ -402,7 +403,7 @@ def transformPoint(mat4x4, point):
 
 # just a wrapper to convert the returned tuple to a list...
 def imguiX_color_edit3_list(label, v):
-    a, b = imgui.color_edit3(label, *v)  # , imgui.GuiColorEditFlags_Float);// | ImGuiColorEditFlags_HSV);
+    a, b = imgui.color_edit3(label, *v)  # , imgui.GuiColorEditFlags_Float)// | ImGuiColorEditFlags_HSV)
     return a, list(b)
 
 
@@ -413,15 +414,15 @@ def subDivide(dest, v0, v1, v2, level):
         # ...we subdivide the input triangle into four equal sub-triangles
         # The mid points are the half way between to vertices, which is really (v0 + v2) / 2, but
         # instead we normalize the vertex to 'push' it out to the surface of the unit sphere.
-        v3 = normalize(v0 + v1);
-        v4 = normalize(v1 + v2);
-        v5 = normalize(v2 + v0);
+        v3 = normalize(v0 + v1)
+        v4 = normalize(v1 + v2)
+        v5 = normalize(v2 + v0)
 
         # ...and then recursively call this function for each of those (with the level decreased by one)
-        subDivide(dest, v0, v3, v5, level - 1);
-        subDivide(dest, v3, v4, v5, level - 1);
-        subDivide(dest, v3, v1, v4, level - 1);
-        subDivide(dest, v5, v4, v2, level - 1);
+        subDivide(dest, v0, v3, v5, level - 1)
+        subDivide(dest, v3, v4, v5, level - 1)
+        subDivide(dest, v3, v1, v4, level - 1)
+        subDivide(dest, v5, v4, v2, level - 1)
     else:
         # If we have reached the terminating level, just output the vertex position
         dest.append(v0)
@@ -443,95 +444,12 @@ def createSphere(numSubDivisionLevels):
     subDivide(sphereVerts, vec3(0, -1, 0), vec3(-1, 0, 0), vec3(0, 0, -1), numSubDivisionLevels)
     subDivide(sphereVerts, vec3(0, -1, 0), vec3(0, 0, -1), vec3(1, 0, 0), numSubDivisionLevels)
 
-    return sphereVerts;
+    return sphereVerts
 
 
 g_sphereVertexArrayObject = None
 g_sphereShader = None
 g_numSphereVerts = 0
-
-
-def drawSphere(position, radius, sphereColour, view):
-    global g_sphereVertexArrayObject
-    global g_sphereShader
-    global g_numSphereVerts
-
-    modelToWorldTransform = make_translation(position[0], position[1], position[2]) * make_scale(radius, radius,
-                                                                                                 radius);
-
-    if not g_sphereVertexArrayObject:
-        sphereVerts = createSphere(3)
-        g_numSphereVerts = len(sphereVerts)
-        g_sphereVertexArrayObject = createVertexArrayObject()
-        createAndAddVertexArrayData(g_sphereVertexArrayObject, sphereVerts, 0)
-        # redundantly add as normals...
-        createAndAddVertexArrayData(g_sphereVertexArrayObject, sphereVerts, 1)
-
-        vertexShader = """
-            #version 330
-            in vec3 positionIn;
-            in vec3 normalIn;
-
-            uniform mat4 modelToClipTransform;
-            uniform mat4 modelToViewTransform;
-            uniform mat3 modelToViewNormalTransform;
-
-            // 'out' variables declared in a vertex shader can be accessed in the subsequent stages.
-            // For a fragment shader the variable is interpolated (the type of interpolation can be modified, try placing 'flat' in front here and in the fragment shader!).
-            out VertexData
-            {
-                vec3 v2f_viewSpacePosition;
-                vec3 v2f_viewSpaceNormal;
-            };
-
-            void main() 
-            {
-                v2f_viewSpacePosition = (modelToViewTransform * vec4(positionIn, 1.0)).xyz;
-                v2f_viewSpaceNormal = normalize(modelToViewNormalTransform * normalIn);
-
-	            // gl_Position is a buit-in 'out'-variable that gets passed on to the clipping and rasterization stages (hardware fixed function).
-                // it must be written by the vertex shader in order to produce any drawn geometry. 
-                // We transform the position using one matrix multiply from model to clip space. Note the added 1 at the end of the position to make the 3D
-                // coordinate homogeneous.
-	            gl_Position = modelToClipTransform * vec4(positionIn, 1.0);
-            }
-"""
-
-        fragmentShader = """
-            #version 330
-            // Input from the vertex shader, will contain the interpolated (i.e., area weighted average) vaule out put for each of the three vertex shaders that 
-            // produced the vertex data for the triangle this fragmet is part of.
-            in VertexData
-            {
-                vec3 v2f_viewSpacePosition;
-                vec3 v2f_viewSpaceNormal;
-            };
-
-            uniform vec4 sphereColour;
-
-            out vec4 fragmentColor;
-
-            void main() 
-            {
-                float shading = max(0.0, dot(normalize(-v2f_viewSpacePosition), v2f_viewSpaceNormal));
-	            fragmentColor = vec4(sphereColour.xyz * shading, sphereColour.w);
-
-            }
-"""
-        g_sphereShader = buildShader([vertexShader], [fragmentShader], {"positionIn": 0, "normalIn": 1})
-
-    glUseProgram(g_sphereShader)
-    setUniform(g_sphereShader, "sphereColour", sphereColour)
-
-    modelToClipTransform = view.viewToClipTransform * view.worldToViewTransform * modelToWorldTransform
-    modelToViewTransform = view.worldToViewTransform * modelToWorldTransform
-    modelToViewNormalTransform = inverse(transpose(Mat3(modelToViewTransform)))
-    setUniform(g_sphereShader, "modelToClipTransform", modelToClipTransform);
-    setUniform(g_sphereShader, "modelToViewTransform", modelToViewTransform);
-    setUniform(g_sphereShader, "modelToViewNormalTransform", modelToViewNormalTransform);
-
-    glBindVertexArray(g_sphereVertexArrayObject)
-    glDrawArrays(GL_TRIANGLES, 0, g_numSphereVerts)
 
 
 def bindTexture(texUnit, textureId, defaultTexture=None):
