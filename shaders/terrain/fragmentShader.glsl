@@ -25,7 +25,6 @@ void main()
     vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, 
         v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
     fragmentColor = vec4(toSrgb(reflectedLight), 1.0);
-    // fragmentColor = texture(ourTexture, vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale));
     // fragmentColor = vec4(toSrgb(vec3(v2f_height/terrainHeightScale)), 1.0);
 
 }

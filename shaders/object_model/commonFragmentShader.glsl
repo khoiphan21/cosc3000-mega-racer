@@ -15,5 +15,8 @@ vec3 toSrgb(vec3 color)
 vec3 computeShading(vec3 materialColour, vec3 viewSpacePosition, vec3 viewSpaceNormal, vec3 viewSpaceLightPos, vec3 lightColour)
 {
     // TODO 1.5: Here's where code to compute shading would be placed most conveniently
-    return materialColour;
+    vec3 viewSpaceDirToLight = normalize(viewSpaceLightPosition - viewSpacePosition);
+    float incomingIntensity = max(0.0, dot(viewSpaceNormal, viewSpaceDirToLight));
+    return vec3(incomingIntensity) * materialColour;
+    // return materialColour;
 }
