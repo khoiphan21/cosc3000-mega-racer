@@ -4,7 +4,6 @@ import glfw
 
 import imgui
 
-import warnings  # we use 'warnings' to remove this warning that ImGui[glfw] gives
 
 from imgui.integrations.glfw import GlfwRenderer as ImGuiGlfwRenderer
 
@@ -14,8 +13,6 @@ from models.world import World
 from helper import renderFrame, update, RenderingSystem
 from glfw_helper.mappings import GLFW_KEYMAP, GLFW_MOUSE_MAP
 from glfw_helper.initialiser import initialise_glfw
-
-warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 START_WIDTH = 1280

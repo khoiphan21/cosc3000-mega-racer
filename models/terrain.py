@@ -6,6 +6,9 @@ import lab_utils as lu
 from lab_utils import vec3, vec2
 
 
+TERRAIN_VERTEX_SHADER_PATH = 'shaders/terrain/vertexShader.glsl'
+TERRAIN_FRAGMENT_SHADER_PATH = 'shaders/terrain/fragmentShader.glsl'
+
 # returned by getInfoAt to provide easy access to height and material type on the terrain for use
 # by the world logic.
 class TerrainInfo:
@@ -158,74 +161,12 @@ class Terrain:
 
             # normalDataBuffer = createAndAddVertexArrayData<vec4>(g_particleVao, { vec4(0.0f) }, 1);
 
-        vertexShader = """
-            #version 330
-            in vec3 positionIn;
-            in vec3 normalIn;
-
-            uniform mat4 modelToClipTransform;
-            uniform mat4 modelToViewTransform;
-            uniform mat3 modelToViewNormalTransform;
-
-            uniform float terrainHeightScale;
-            uniform float terrainTextureXyScale;
-            uniform vec2 xyNormScale;
-            uniform vec2 xyOffset;
-
-
-            // 'out' variables declared in a vertex shader can be accessed in the subsequent stages.
-            // For a fragment shader the variable is interpolated (the type of interpolation can be modified, try placing 'flat' in front here and in the fragment shader!).
-            out VertexData
-            {
-	            float v2f_height;
-                vec3 v2f_viewSpacePosition;
-                vec3 v2f_viewSpaceNormal;
-                vec3 v2f_worldSpacePosition;
-            };
-
-            void main() 
-            {
-                // pass the world-space Z to the fragment shader, as it is used to compute the colour and other things
-	            v2f_height = positionIn.z;
-                v2f_worldSpacePosition = positionIn;
-                v2f_viewSpacePosition = (modelToViewTransform * vec4(positionIn, 1.0)).xyz;
-                v2f_viewSpaceNormal = modelToViewNormalTransform * normalIn;
-
-	            // gl_Position is a buit-in 'out'-variable that gets passed on to the clipping and rasterization stages (hardware fixed function).
-                // it must be written by the vertex shader in order to produce any drawn geometry. 
-                // We transform the position using one matrix multiply from model to clip space. Note the added 1 at the end of the position to make the 3D
-                // coordinate homogeneous.
-	            gl_Position = modelToClipTransform * vec4(positionIn, 1.0);
-            }
-"""
-
-        fragmentShader = """
-            // Input from the vertex shader, will contain the interpolated (i.e., area weighted average) vaule out put for each of the three vertex shaders that 
-            // produced the vertex data for the triangle this fragmet is part of.
-            in VertexData
-            {
-	            float v2f_height;
-                vec3 v2f_viewSpacePosition;
-                vec3 v2f_viewSpaceNormal;
-                vec3 v2f_worldSpacePosition;
-            };
-
-            uniform float terrainHeightScale;
-            uniform float terrainTextureXyScale;
-
-            out vec4 fragmentColor;
-
-            void main() 
-            {
-                vec3 materialColour = vec3(v2f_height/terrainHeightScale);
-                // TODO 1.4: Compute the texture coordinates and sample the texture for the grass and use as material colour.
-
-                vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
-	            fragmentColor = vec4(toSrgb(reflectedLight), 1.0);
-	            //fragmentColor = vec4(toSrgb(vec3(v2f_height/terrainHeightScale)), 1.0);
-
-            }
-"""
+        # Get the vertexShader and fragmentShader
+        with open(TERRAIN_VERTEX_SHADER_PATH) as file:
+            vertexShader = ''.join(file.readlines())
+        with open(TERRAIN_FRAGMENT_SHADER_PATH) as file:
+            fragmentShader = ''.join(file.readlines())
+            
         # Note how we provide lists of source code strings for the two shader stages.
         # This is basically the only standard way to 'include' or 'import' code into more than one shader. The variable renderingSystem.commonFragmentShaderCode
         # contains code that we wish to use in all the fragment shaders, for example code to transform the colour output to srgb.
