@@ -261,20 +261,19 @@ class ObjModel:
             # However: normal/bump maps/alpha masks, are typically authored in linear space, and so should not be stored as SRGB texture format.
             data = im.tobytes("raw", "RGBX" if im.mode == 'RGB' else "RGBA", 0, -1)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA if srgb else GL_RGBA, im.size[0], im.size[1], 0, GL_RGBA,
-                         GL_UNSIGNED_BYTE, data);
+                         GL_UNSIGNED_BYTE, data)
             # print("    Loaded texture '%s' (%d x %d)"%(fileName, im.size[0], im.size[1]));
-            glGenerateMipmap(GL_TEXTURE_2D);
+            glGenerateMipmap(GL_TEXTURE_2D)
 
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
             # glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture(GL_TEXTURE_2D, 0)
             return texId
         except:
             print("WARNING: FAILED to load texture '%s'" % fileName);
-            # print("Could not load image :(")
 
         return -1
 

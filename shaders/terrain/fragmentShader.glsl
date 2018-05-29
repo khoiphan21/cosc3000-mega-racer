@@ -12,17 +12,20 @@ in VertexData
 uniform float terrainHeightScale;
 uniform float terrainTextureXyScale;
 
+uniform sampler2D ourTexture;
+
 out vec4 fragmentColor;
 
 void main()
 {
-    vec3 materialColour = vec3(v2f_height/terrainHeightScale);
+    vec3 materialColour = texture(ourTexture, vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale)).xyz;
     // TODO 1.4: Compute the texture coordinates and sample the texture for the 
     // grass and use as material colour.
 
     vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, 
         v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
     fragmentColor = vec4(toSrgb(reflectedLight), 1.0);
+    // fragmentColor = texture(ourTexture, vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale));
     // fragmentColor = vec4(toSrgb(vec3(v2f_height/terrainHeightScale)), 1.0);
 
 }

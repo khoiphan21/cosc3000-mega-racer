@@ -47,6 +47,9 @@ class Terrain:
     # Texture unit allocations:
     TU_Grass = 0
 
+    texture_id = None
+
+
     def render(self, view, renderingSystem):
         glUseProgram(self.shader)
         renderingSystem.setCommonUniforms(self.shader, view, lu.Mat4())
@@ -59,9 +62,9 @@ class Terrain:
         lu.setUniform(self.shader, "xyOffset", xyOffset)
 
         # TODO 1.4: Bind the grass texture to the right texture unit, hint: lu.bindTexture
-        texture_id = glGenTextures(1)
+        # texture_id = glGenTextures(1)
         glActiveTexture(GL_TEXTURE0 + self.TU_Grass)
-        glBindTexture(GL_TEXTURE_2D, texture_id)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id)
 
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -188,7 +191,7 @@ class Terrain:
         # TODO 1.4: Load texture and configure the sampler
         texture_file = 'data/grass2.png'
         base_path, filename = os.path.split(texture_file)
-        texture_id = ObjModel.loadTexture(filename, base_path, True)
+        self.texture_id = ObjModel.loadTexture(filename, base_path, True)
 
 
     # Called by the world to drawt he UI widgets for the terrain.
