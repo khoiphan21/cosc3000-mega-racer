@@ -261,8 +261,13 @@ def createAndAddVertexArrayData(vertexArrayObject, data, attributeIndex):
     buffer = glGenBuffers(1)
     uploadFloatData(buffer, data)
 
+    # This binds the buffer object to GL_ARRAY_BUFFER, which is where the data will be passed onto
+    # the next glVertexAttribPointer() call
     glBindBuffer(GL_ARRAY_BUFFER, buffer)
+
+    # attributeIndex is essentially the order (starting at 0) in the vertex shader where the attribute was defined.
     glVertexAttribPointer(attributeIndex, len(data[0]), GL_FLOAT, GL_FALSE, 0, None)
+    # This next call is necessary as vertex attributes are disabled by default
     glEnableVertexAttribArray(attributeIndex)
 
     # Unbind the buffers again to avoid unintentianal GL state corruption (this is something that can be rather inconventient to debug)
