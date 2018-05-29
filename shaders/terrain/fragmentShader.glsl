@@ -23,11 +23,18 @@ void main()
     // grass and use as material colour.
     vec2 textCoord = vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale);
 
+    float height = v2f_height/terrainHeightScale;
+    float ratio = 0.0;
+
+    if ( height > 0.8)
+    {
+        ratio = height;
+    }
+
     vec4 mixedTexture = mix(
         texture(ourTexture, textCoord),
         texture(rockHighTexture, textCoord),
-        0.5
-        // v2f_height/terrainHeightScale
+        ratio
     );
     vec3 materialColour = mixedTexture.xyz;
     // vec3 materialColour = texture(ourTexture, textCoord).xyz;
