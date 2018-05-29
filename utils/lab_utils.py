@@ -252,12 +252,10 @@ def uploadFloatData(bufferObject, floatData):
     glBufferData(GL_ARRAY_BUFFER, data_buffer, GL_STATIC_DRAW)
 
 
-def createVertexArrayObject():
-    return glGenVertexArrays(1)
-
-
 def createAndAddVertexArrayData(vertexArrayObject, data, attributeIndex):
+    # Binds to the VAO to store vertex attribute configurations
     glBindVertexArray(vertexArrayObject)
+
     buffer = glGenBuffers(1)
     uploadFloatData(buffer, data)
 
@@ -272,6 +270,8 @@ def createAndAddVertexArrayData(vertexArrayObject, data, attributeIndex):
 
     # Unbind the buffers again to avoid unintentianal GL state corruption (this is something that can be rather inconventient to debug)
     glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+    # Unbind to the VAO
     glBindVertexArray(0)
 
     return buffer
@@ -308,6 +308,8 @@ def getShaderInfoLog(obj):
 # This function performs the steps needed to compile the source code for a
 # shader stage (e.g., vertex / fragment) and attach it to a shader program object.
 #
+# Returns True if the operation runs without issues
+#
 def compileAndAttachShader(shaderProgram, shaderType, sources):
     # Create the opengl shader object
     shader = glCreateShader(shaderType)
@@ -335,31 +337,31 @@ def compileAndAttachShader(shaderProgram, shaderType, sources):
 # The fragDataLocs can be left out for programs that don't use multiple render targets as 
 # the default for any output variable is zero.
 def buildShader(vertexShaderSources, fragmentShaderSources, attribLocs, fragDataLocs={}):
-    shader = glCreateProgram()
+    shader_program = glCreateProgram()
 
-    if compileAndAttachShader(shader, GL_VERTEX_SHADER, vertexShaderSources) and \
-            compileAndAttachShader(shader, GL_FRAGMENT_SHADER, fragmentShaderSources):
+    if compileAndAttachShader(shader_program, GL_VERTEX_SHADER, vertexShaderSources) and \
+            compileAndAttachShader(shader_program, GL_FRAGMENT_SHADER, fragmentShaderSources):
         # Link the attribute names we used in the vertex shader to the integer index
         for name, loc in attribLocs.items():
-            glBindAttribLocation(shader, loc, name)
+            glBindAttribLocation(shader_program, loc, name)
 
             # If we have multiple images bound as render targets, we need to specify which
             # 'out' variable in the fragment shader goes where in this case it is totally redundant
         # as we only have one (the default render target, or frame buffer) and the default binding is always zero.
         for name, loc in fragDataLocs.items():
-            glBindFragDataLocation(shader, loc, name)
+            glBindFragDataLocation(shader_program, loc, name)
 
         # once the bindings are done we can link the program stages to get a complete shader pipeline.
         # this can yield errors, for example if the vertex and fragment shaders don't have compatible out and in 
         # variables (e.g., the fragment shader expects some data that the vertex shader is not outputting).
-        glLinkProgram(shader)
+        glLinkProgram(shader_program)
         # Now check if the linking was successful
-        success = glGetProgramiv(shader, GL_LINK_STATUS)
+        success = glGetProgramiv(shader_program, GL_LINK_STATUS)
         if not success:
-            err = glGetProgramInfoLog(shader)
+            err = glGetProgramInfoLog(shader_program)
             print("SHADER LINKER ERROR: '%s'" % err)
             sys.exit(1)
-    return shader
+    return shader_program
 
 
 # Helper for debugging, if uniforms appear to not be set properly, you can set a breakpoint here,

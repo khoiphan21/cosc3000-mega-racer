@@ -1,13 +1,17 @@
+import os
+
 import imgui
 from OpenGL.GL import *
 from PIL import Image
 
 from utils import lab_utils as lu
 from utils.lab_utils import vec3, vec2
+from utils.ObjModel import ObjModel
 
 
 TERRAIN_VERTEX_SHADER_PATH = 'shaders/terrain/vertexShader.glsl'
 TERRAIN_FRAGMENT_SHADER_PATH = 'shaders/terrain/fragmentShader.glsl'
+
 
 # returned by getInfoAt to provide easy access to height and material type on the terrain for use
 # by the world logic.
@@ -56,7 +60,8 @@ class Terrain:
 
         # TODO 1.4: Bind the grass texture to the right texture unit, hint: lu.bindTexture
         texture_id = glGenTextures(1)
-        lu.bindTexture(self.TU_Grass, texture_id)
+        glActiveTexture(GL_TEXTURE0 + self.TU_Grass)
+        glBindTexture(GL_TEXTURE_2D, texture_id)
 
         if self.renderWireFrame:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -156,12 +161,15 @@ class Terrain:
 
             self.terrainInds = terrainInds
 
-            self.vertexArrayObject = lu.createVertexArrayObject();
+            # This creates a Vertex Array Object (VAO) to store each vertex attribute call.
+            # This is so that we only need to configure the Vertex Attribute Pointers
+            #   only once, and whenever we want to draw a certain object, we can just
+            #   bind the corresponding VAO
+            self.vertexArrayObject = glGenVertexArrays(1)
+
             self.vertexDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainVerts, 0)
             self.normalDataBuffer = lu.createAndAddVertexArrayData(self.vertexArrayObject, terrainNormals, 1)
             self.indexDataBuffer = lu.createAndAddIndexArray(self.vertexArrayObject, terrainInds)
-
-            # normalDataBuffer = createAndAddVertexArrayData<vec4>(g_particleVao, { vec4(0.0f) }, 1);
 
         # Get the vertexShader and fragmentShader from the files
         with open(TERRAIN_VERTEX_SHADER_PATH) as file:
@@ -178,6 +186,9 @@ class Terrain:
                                      {"positionIn": 0, "normalIn": 1})
 
         # TODO 1.4: Load texture and configure the sampler
+        texture_file = 'data/grass2.png'
+        base_path, filename = os.path.split(texture_file)
+        texture_id = ObjModel.loadTexture(filename, base_path, True)
 
 
     # Called by the world to drawt he UI widgets for the terrain.

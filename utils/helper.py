@@ -15,6 +15,11 @@ from utils.lab_utils import vec3
 from models.world import World
 
 
+OBJECT_MODEL_VERTEX_SHADER_FILE = 'shaders/object_model/vertexShader.glsl'
+OBJECT_MODEL_FRAGMENT_SHADER_FILE = 'shaders/object_model/fragmentShader.glsl'
+COMMON_FRAGMENT_SHADER_FILE = 'shaders/object_model/commonFragmentShader.glsl'
+
+
 #
 # Classes
 #
@@ -35,35 +40,17 @@ class ViewParams:
 # Really just a helper class to be able to pass around shared utilities to the different modules
 #
 class RenderingSystem:
-    # The variable renderingSystem.commonFragmentShaderCode contains code that we wish to use in all the fragment shaders,
-    # for example code to transform the colour output to srgb. It is also a nice place to put code to compute lighting
-    # and other effects that should be the same accross the terrain and racer for example.
-    commonFragmentShaderCode = """
 
-    uniform mat4 worldToViewTransform;
-    uniform mat4 viewSpaceToSmTextureSpace;
-    uniform sampler2DShadow shadowMapTexture;
-
-    uniform vec3 viewSpaceLightPosition;
-    uniform vec3 sunLightColour;
-    uniform vec3 globalAmbientLight;
-
-    vec3 toSrgb(vec3 color)
-    {
-      return pow(color, vec3(1.0 / 2.2));
-    }
-
-
-    vec3 computeShading(vec3 materialColour, vec3 viewSpacePosition, vec3 viewSpaceNormal, vec3 viewSpaceLightPos, vec3 lightColour)
-    {
-        // TODO 1.5: Here's where code to compute shading would be placed most conveniently
-        return materialColour;
-    }
-    """
     objModelShader = None
 
     def __init__(self, world: World):
         self.world = world
+
+        # The variable renderingSystem.commonFragmentShaderCode contains code that we wish to use in all the fragment shaders,
+        # for example code to transform the colour output to srgb. It is also a nice place to put code to compute lighting
+        # and other effects that should be the same accross the terrain and racer for example.
+        with open(COMMON_FRAGMENT_SHADER_FILE) as file:
+            self.commonFragmentShaderCode = ''.join(file.readlines())
 
     # Helper to set common uniforms, such as those used for global lights that should be implemetned the same way in all shaders.
     # Properly, these should be put into a uniform buffer object and uploaded once and for all, this is infinitely faster and better
@@ -101,79 +88,13 @@ class RenderingSystem:
         glUseProgram(0)
 
     def setupObjModelShader(self):
-        self.objModelShader = lu.buildShader(["""
-                #version 330
-
-                in vec3 positionAttribute;
-                in vec3	normalAttribute;
-                in vec2	texCoordAttribute;
-
-                uniform mat4 modelToClipTransform;
-                uniform mat4 modelToViewTransform;
-                uniform mat3 modelToViewNormalTransform;
-
-                // Out variables decalred in a vertex shader can be accessed in the subsequent stages.
-                // For a pixel shader the variable is interpolated (the type of interpolation can be modified, try placing 'flat' in front, and also in the fragment shader!).
-                out VertexData
-                {
-	                vec3 v2f_viewSpaceNormal;
-	                vec3 v2f_viewSpacePosition;
-	                vec2 v2f_texCoord;
-                };
-
-                void main() 
-                {
-	                // gl_Position is a buit in out variable that gets passed on to the clipping and rasterization stages.
-                  // it must be written in order to produce any drawn geometry. 
-                  // We transform the position using one matrix multiply from model to clip space, note the added 1 at the end of the position.
-	                gl_Position = modelToClipTransform * vec4(positionAttribute, 1.0);
-	                // We transform the normal to view space using the normal transform (which is the inverse-transpose of the rotation part of the modelToViewTransform)
-                  // Just using the rotation is only valid if the matrix contains only rotation and uniform scaling.
-	                v2f_viewSpaceNormal = normalize(modelToViewNormalTransform * normalAttribute);
-	                v2f_viewSpacePosition = (modelToViewTransform * vec4(positionAttribute, 1.0)).xyz;
-	                // The texture coordinate is just passed through
-	                v2f_texCoord = texCoordAttribute;
-                }
-                """], ["#version 330\n", self.commonFragmentShaderCode, """
-                // Input from the vertex shader, will contain the interpolated (i.e., area-weighted average) vaule out put for each of the three vertex shaders that 
-                // produced the vertex data for the triangle this fragmet is part of.
-                in VertexData
-                {
-	                vec3 v2f_viewSpaceNormal;
-	                vec3 v2f_viewSpacePosition;
-	                vec2 v2f_texCoord;
-                };
-
-                // Material properties set by OBJModel.
-                uniform vec3 material_diffuse_color; 
-	            uniform float material_alpha;
-                uniform vec3 material_specular_color; 
-                uniform vec3 material_emissive_color; 
-                uniform float material_specular_exponent;
-
-                // Textures set by OBJModel 
-                uniform sampler2D diffuse_texture;
-                uniform sampler2D opacity_texture;
-                uniform sampler2D specular_texture;
-                uniform sampler2D normal_texture;
-
-                out vec4 fragmentColor;
-
-                void main() 
-                {
-	                // Manual alpha test (note: alpha test is no longer part of Opengl 3.3).
-	                if (texture(opacity_texture, v2f_texCoord).r < 0.5)
-	                {
-		                discard;
-	                }
-
-	                vec3 materialDiffuse = texture(diffuse_texture, v2f_texCoord).xyz * material_diffuse_color;
-
-                    vec3 reflectedLight = computeShading(materialDiffuse, v2f_viewSpacePosition, v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour) + material_emissive_color;
-
-	                fragmentColor = vec4(toSrgb(reflectedLight), material_alpha);
-                }
-            """], ObjModel.getDefaultAttributeBindings())
+        with open(OBJECT_MODEL_VERTEX_SHADER_FILE) as file:
+            vertex_shader_code = ''.join(file.readlines())
+        with open(OBJECT_MODEL_FRAGMENT_SHADER_FILE) as file:
+            fragment_shader_code = ''.join(file.readlines())
+        self.objModelShader = lu.buildShader([vertex_shader_code],
+                                             ["#version 330\n", self.commonFragmentShaderCode, fragment_shader_code],
+                                             ObjModel.getDefaultAttributeBindings())
         glUseProgram(self.objModelShader)
         ObjModel.setDefaultUniformBindings(self.objModelShader)
         glUseProgram(0)
@@ -182,8 +103,6 @@ class RenderingSystem:
 #
 # Functions and procedures
 #
-
-
 def sampleKeyFrames(t, kfs):
     # 1. find correct interval
     if t <= kfs[0][0]:
