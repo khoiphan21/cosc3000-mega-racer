@@ -1,3 +1,4 @@
+import sys
 import math
 from ctypes import c_float, c_uint
 
@@ -331,9 +332,8 @@ def compileAndAttachShader(shaderProgram, shaderType, sources):
 def buildShader(vertexShaderSources, fragmentShaderSources, attribLocs, fragDataLocs={}):
     shader = glCreateProgram()
 
-    if compileAndAttachShader(shader, GL_VERTEX_SHADER, vertexShaderSources) and compileAndAttachShader(shader,
-                                                                                                        GL_FRAGMENT_SHADER,
-                                                                                                        fragmentShaderSources):
+    if compileAndAttachShader(shader, GL_VERTEX_SHADER, vertexShaderSources) and \
+            compileAndAttachShader(shader, GL_FRAGMENT_SHADER, fragmentShaderSources):
         # Link the attribute names we used in the vertex shader to the integer index
         for name, loc in attribLocs.items():
             glBindAttribLocation(shader, loc, name)
