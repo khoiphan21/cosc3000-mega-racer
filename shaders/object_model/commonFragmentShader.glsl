@@ -16,7 +16,9 @@ vec3 computeShading(vec3 materialColour, vec3 viewSpacePosition, vec3 viewSpaceN
 {
     // TODO 1.5: Here's where code to compute shading would be placed most conveniently
     vec3 viewSpaceDirToLight = normalize(viewSpaceLightPosition - viewSpacePosition);
-    float incomingIntensity = max(0.0, dot(viewSpaceNormal, viewSpaceDirToLight));
-    return vec3(incomingIntensity) * materialColour;
+    vec3 norm_viewSpaceNormal = normalize(viewSpaceNormal);
+    float incomingIntensity = max(0.0, dot(norm_viewSpaceNormal, viewSpaceDirToLight));
+    return (vec3(incomingIntensity) * sunLightColour +  + globalAmbientLight) * materialColour;
+    // return (vec3(incomingIntensity)) * materialColour;
     // return materialColour;
 }

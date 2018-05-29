@@ -19,6 +19,7 @@ out vec4 fragmentColor;
 void main()
 {
     vec3 materialColour = texture(ourTexture, vec2(v2f_worldSpacePosition.x * terrainTextureXyScale, v2f_worldSpacePosition.y * terrainTextureXyScale)).xyz;
+    // vec3 materialColour = vec3(v2f_height/terrainHeightScale);
     // TODO 1.4: Compute the texture coordinates and sample the texture for the 
     // grass and use as material colour.
 

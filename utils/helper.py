@@ -138,7 +138,9 @@ def update(world: World, g_renderingSystem: RenderingSystem, dt, keyStateMap, mo
 
     world.racer.update(dt, keyStateMap)
 
-    world.view_position = world.racer.position - (world.racer.heading * world.follow_cam_offset) + [0, 0, world.follow_cam_offset]
+    world.view_position = world.racer.position - \
+                          (world.racer.heading * world.follow_cam_offset) + \
+                          [0, 0, world.follow_cam_offset]
     world.view_target = world.racer.position + vec3(0, 0, world.follow_cam_look_offset)
 
     if imgui.tree_node("Camera", imgui.TREE_NODE_DEFAULT_OPEN):
