@@ -10,7 +10,7 @@ from imgui.integrations.glfw import GlfwRenderer as ImGuiGlfwRenderer
 from models.terrain import Terrain
 from models.racer import Racer
 from models.world import World
-from helper import renderFrame, update, RenderingSystem
+from utils.helper import renderFrame, update, RenderingSystem
 from glfw_helper.mappings import GLFW_KEYMAP, GLFW_MOUSE_MAP
 from glfw_helper.initialiser import initialise_glfw
 

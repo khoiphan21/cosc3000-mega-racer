@@ -3,7 +3,7 @@
 import warnings  # we use 'warnings' to remove this warning that ImGui[glfw] gives
 
 from models.world import World
-from game import MegaRacer
+from models.game import MegaRacer
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
