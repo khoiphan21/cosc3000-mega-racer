@@ -1,20 +1,19 @@
-from OpenGL.GL import *
 import os
+from ctypes import c_float
+
+from OpenGL.GL import *
 from PIL import Image
-from ctypes import sizeof, c_float, c_void_p, c_uint, string_at
+
 import lab_utils as lu
 
 
 def flatten(*lll):
-	return [u for ll in lll for l in ll for u in l]
-
+    return [u for ll in lll for l in ll for u in l]
 
 
 def bindTexture(texUnit, textureId, defaultTexture):
-	glActiveTexture(GL_TEXTURE0 + texUnit);
-	glBindTexture(GL_TEXTURE_2D, textureId if textureId != -1 else defaultTexture);
-
-
+    glActiveTexture(GL_TEXTURE0 + texUnit);
+    glBindTexture(GL_TEXTURE_2D, textureId if textureId != -1 else defaultTexture);
 
 
 class ObjModel:
@@ -35,7 +34,6 @@ class ObjModel:
     TU_Normal = 3
     TU_Max = 4
 
-
     def __init__(self, fileName):
         self.defaultTextureOne = glGenTextures(1);
         glBindTexture(GL_TEXTURE_2D, self.defaultTextureOne);
@@ -49,13 +47,14 @@ class ObjModel:
         self.overrideDiffuseTextureWithDefault = False
         self.load(fileName)
 
-        self.defaultShader = lu.buildShader(self.defaultVertexShader, self.defaultFragmentShader, ObjModel.getDefaultAttributeBindings())
+        self.defaultShader = lu.buildShader(self.defaultVertexShader, self.defaultFragmentShader,
+                                            ObjModel.getDefaultAttributeBindings())
         glUseProgram(self.defaultShader)
         ObjModel.setDefaultUniformBindings(self.defaultShader)
         glUseProgram(0)
 
     def load(self, fileName):
-        basePath,_ = os.path.split(fileName)
+        basePath, _ = os.path.split(fileName)
         with open(fileName, "r") as inFile:
             self.loadObj(inFile.readlines(), basePath)
 
@@ -65,9 +64,9 @@ class ObjModel:
         uvs = []
         materialChunks = []
         materials = {}
-        
+
         for l in objLines:
-            #1 standardize line
+            # 1 standardize line
             if len(l) > 0 and l[:1] != "#":
                 tokens = l.split()
                 if len(tokens):
@@ -78,7 +77,7 @@ class ObjModel:
                     if tokens[0] == "usemtl":
                         assert len(tokens) >= 2
                         materialName = " ".join(tokens[1:])
-                        if len(materialChunks) == 0 or materialChunks[-1][0]  != materialName:
+                        if len(materialChunks) == 0 or materialChunks[-1][0] != materialName:
                             materialChunks.append([materialName, []])
                     elif tokens[0] == "v":
                         assert len(tokens[1:]) >= 3
@@ -94,12 +93,12 @@ class ObjModel:
         self.numVerts = 0
         for mc in materialChunks:
             self.numVerts += len(mc[1])
-        
-        self.positions = [None]*self.numVerts
-        self.normals = [None]*self.numVerts
-        self.uvs = [[0.0,0.0]]*self.numVerts
-        self.tangents = [[0.0,1.0,0.0]]*self.numVerts
-        self.bitangents = [[1.0,0.0,0.0]]*self.numVerts
+
+        self.positions = [None] * self.numVerts
+        self.normals = [None] * self.numVerts
+        self.uvs = [[0.0, 0.0]] * self.numVerts
+        self.tangents = [[0.0, 1.0, 0.0]] * self.numVerts
+        self.bitangents = [[1.0, 0.0, 0.0]] * self.numVerts
         self.chunks = []
 
         start = 0
@@ -109,28 +108,28 @@ class ObjModel:
             material = materials[matId]
             renderFlags = 0
             if material["alpha"] != 1.0:
-                renderFlags |= self.RF_Transparent 
+                renderFlags |= self.RF_Transparent
             elif material["texture"]["opacity"] != -1:
                 renderFlags |= self.RF_AlphaTested
             else:
                 renderFlags |= self.RF_Opaque
             start = end
-            end = start + int(len(tris)/3)
+            end = start + int(len(tris) / 3)
 
             chunkOffset = start * 3
             chunkCount = len(tris)
 
             # De-index mesh and (TODO) compute tangent frame
-            for k in range(0,len(tris),3):
-                for j in [0,1,2]:
+            for k in range(0, len(tris), 3):
+                for j in [0, 1, 2]:
                     p = positions[tris[k + j][0]]
                     oo = chunkOffset + k + j
-                    self.positions[oo]= p
+                    self.positions[oo] = p
                     if tris[k + j][1] != -1:
                         self.uvs[oo] = uvs[tris[k + j][1]]
                     self.normals[oo] = normals[tris[k + j][2]]
             self.chunks.append((material, chunkOffset, chunkCount, renderFlags))
-        
+
         self.vertexArrayObject = glGenVertexArrays(1)
         glBindVertexArray(self.vertexArrayObject)
 
@@ -152,7 +151,6 @@ class ObjModel:
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindVertexArray(0)
-
 
     def parseFloats(self, tokens, minNum):
         assert len(tokens) >= minNum
@@ -185,21 +183,21 @@ class ObjModel:
                         assert len(tokens) >= 2
                         currentMaterial = " ".join(tokens[1:])
                         materials[currentMaterial] = {
-                            "color" : {
-                                "diffuse"  : [ 0.5, 0.5, 0.5 ],
-                                "ambient"  : [ 0.5, 0.5, 0.5 ],
-                                "specular" : [ 0.5, 0.5, 0.5 ],
-                                "emissive" : [ 0.0, 0.0, 0.0 ]
+                            "color": {
+                                "diffuse": [0.5, 0.5, 0.5],
+                                "ambient": [0.5, 0.5, 0.5],
+                                "specular": [0.5, 0.5, 0.5],
+                                "emissive": [0.0, 0.0, 0.0]
                             },
-                            "texture" : {
-                                "diffuse" : -1,
-                                "opacity" : -1,
-                                "specular" : -1,
-                                "normal" : -1,
+                            "texture": {
+                                "diffuse": -1,
+                                "opacity": -1,
+                                "specular": -1,
+                                "normal": -1,
                             },
-                            "alpha" : 1.0,
-                            "specularExponent" : 22.0,
-                            "offset" : 0,
+                            "alpha": 1.0,
+                            "specularExponent": 22.0,
+                            "offset": 0,
                         }
                     elif tokens[0] == "Ka":
                         materials[currentMaterial]["color"]["ambient"] = self.parseFloats(tokens[1:], 3)
@@ -212,23 +210,27 @@ class ObjModel:
                     elif tokens[0] == "Ke":
                         materials[currentMaterial]["color"]["emissive"] = self.parseFloats(tokens[1:], 3)
                     elif tokens[0] == "map_Kd":
-                        materials[currentMaterial]["texture"]["diffuse"] = ObjModel.loadTexture(" ".join(tokens[1:]), basePath, True)
+                        materials[currentMaterial]["texture"]["diffuse"] = ObjModel.loadTexture(" ".join(tokens[1:]),
+                                                                                                basePath, True)
                     elif tokens[0] == "map_Ks":
-                        materials[currentMaterial]["texture"]["specular"] = ObjModel.loadTexture(" ".join(tokens[1:]), basePath, True)
+                        materials[currentMaterial]["texture"]["specular"] = ObjModel.loadTexture(" ".join(tokens[1:]),
+                                                                                                 basePath, True)
                     elif tokens[0] == "map_bump" or tokens[0] == "bump":
-                        materials[currentMaterial]["texture"]["normal"] = ObjModel.loadTexture(" ".join(tokens[1:]), basePath, False)
+                        materials[currentMaterial]["texture"]["normal"] = ObjModel.loadTexture(" ".join(tokens[1:]),
+                                                                                               basePath, False)
                     elif tokens[0] == "map_d":
-                        materials[currentMaterial]["texture"]["opacity"] = ObjModel.loadTexture(" ".join(tokens[1:]), basePath, False)
+                        materials[currentMaterial]["texture"]["opacity"] = ObjModel.loadTexture(" ".join(tokens[1:]),
+                                                                                                basePath, False)
                     elif tokens[0] == "d":
                         materials[currentMaterial]["alpha"] = float(tokens[1])
 
         # check of there is a colour texture but the coour is zero and then change it to 1, Maya exporter does this to us...
-        for id,m in materials.items():
+        for id, m in materials.items():
             for ch in ["diffuse", "specular"]:
                 if m["texture"][ch] != -1 and sum(m["color"][ch]) == 0.0:
-                    m["color"][ch] = [1,1,1]
+                    m["color"][ch] = [1, 1, 1]
                 if m["texture"][ch] != -1 and sum(m["color"][ch]) == 0.0:
-                    m["color"][ch] = [1,1,1]
+                    m["color"][ch] = [1, 1, 1]
         return materials
 
     def loadTexture(fileName, basePath, srgb):
@@ -247,26 +249,25 @@ class ObjModel:
             # Thus we use the GL_SRGB_ALPHA to ensure they are correctly converted to linear space when loaded into the shader.
             # However: normal/bump maps/alpha masks, are typically authored in linear space, and so should not be stored as SRGB texture format.
             data = im.tobytes("raw", "RGBX" if im.mode == 'RGB' else "RGBA", 0, -1)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA if srgb else GL_RGBA, im.size[0], im.size[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            #print("    Loaded texture '%s' (%d x %d)"%(fileName, im.size[0], im.size[1]));
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA if srgb else GL_RGBA, im.size[0], im.size[1], 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, data);
+            # print("    Loaded texture '%s' (%d x %d)"%(fileName, im.size[0], im.size[1]));
             glGenerateMipmap(GL_TEXTURE_2D);
 
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            #glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
+            # glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
             glBindTexture(GL_TEXTURE_2D, 0);
             return texId
         except:
-            print("WARNING: FAILED to load texture '%s'"%fileName);
-            #print("Could not load image :(")
+            print("WARNING: FAILED to load texture '%s'" % fileName);
+            # print("Could not load image :(")
 
         return -1;
 
-
-
-    def render(self, shaderProgram = None, renderFlags = None, transforms = {}):
+    def render(self, shaderProgram=None, renderFlags=None, transforms={}):
         if not renderFlags:
             renderFlags = self.RF_All
 
@@ -281,14 +282,14 @@ class ObjModel:
 
         # define defaults (identity)
         defaultTfms = {
-#            "modelToClipTransform" : lu.Mat4(),
-#            "modelToViewTransform" : lu.Mat4(),
-#            "modelToViewNormalTransform" : lu.Mat3(),
+            #            "modelToClipTransform" : lu.Mat4(),
+            #            "modelToViewTransform" : lu.Mat4(),
+            #            "modelToViewNormalTransform" : lu.Mat3(),
         }
         # overwrite defaults
         defaultTfms.update(transforms)
         # upload map of transforms
-        for tfmName,tfm in defaultTfms.items():
+        for tfmName, tfm in defaultTfms.items():
             loc = lu.getUniformLocationDebug(shaderProgram, tfmName)
             tfm._set_open_gl_uniform(loc);
 
@@ -306,39 +307,39 @@ class ObjModel:
                 bindTexture(self.TU_Specular, material["texture"]["specular"], self.defaultTextureOne);
                 bindTexture(self.TU_Normal, material["texture"]["normal"], self.defaultNormalTexture);
                 # TODO: can I do uniform buffers from python (yes, I need to use that struct thingo!)
-                #uint32_t matUniformSize = sizeof(MaterialProperties_Std140);
-                #glBindBufferRange(GL_UNIFORM_BUFFER, UBS_MaterialProperties, m_materialPropertiesBuffer, (uint32_t)chunk.material->offset * matUniformSize, matUniformSize);
+                # uint32_t matUniformSize = sizeof(MaterialProperties_Std140);
+                # glBindBufferRange(GL_UNIFORM_BUFFER, UBS_MaterialProperties, m_materialPropertiesBuffer, (uint32_t)chunk.material->offset * matUniformSize, matUniformSize);
                 # TODO: this is very slow, it should be packed into an uniform buffer as per above!
-                for k,v in material["color"].items():
-                    glUniform3fv(lu.getUniformLocationDebug(shaderProgram, "material_%s_color"%k), 1, v)
-                glUniform1f(lu.getUniformLocationDebug(shaderProgram, "material_specular_exponent"), material["specularExponent"])
+                for k, v in material["color"].items():
+                    glUniform3fv(lu.getUniformLocationDebug(shaderProgram, "material_%s_color" % k), 1, v)
+                glUniform1f(lu.getUniformLocationDebug(shaderProgram, "material_specular_exponent"),
+                            material["specularExponent"])
                 glUniform1f(lu.getUniformLocationDebug(shaderProgram, "material_alpha"), material["alpha"])
-    
+
             glDrawArrays(GL_TRIANGLES, chunkOffset, chunkCount)
 
         glUseProgram(0);
         # deactivate texture units...
-        #for (int i = TU_Max - 1; i >= 0; --i)
-        #{
-	       # glActiveTexture(GL_TEXTURE0 + i);
-	       # glBindTexture(GL_TEXTURE_2D, 0);
-        #}
+        # for (int i = TU_Max - 1; i >= 0; --i)
+        # {
+        # glActiveTexture(GL_TEXTURE0 + i);
+        # glBindTexture(GL_TEXTURE_2D, 0);
+        # }
 
     # useful to get the default bindings that the ObjModel will use when rendering, use to set up own shaders
     # for example an optimized shadow shader perhaps?
     def getDefaultAttributeBindings():
         return {
-            "positionAttribute" : ObjModel.AA_Position,
-            "normalAttribute" : ObjModel.AA_Normal,
-            "texCoordAttribute" : ObjModel.AA_TexCoord,
-            "tangentAttribute" : ObjModel.AA_Tangent,
-            "bitangentAttribute" : ObjModel.AA_Bitangent,
+            "positionAttribute": ObjModel.AA_Position,
+            "normalAttribute": ObjModel.AA_Normal,
+            "texCoordAttribute": ObjModel.AA_TexCoord,
+            "tangentAttribute": ObjModel.AA_Tangent,
+            "bitangentAttribute": ObjModel.AA_Bitangent,
         }
 
-
-	#
-	# Helper to set the default uniforms provided by ObjModel. This only needs to be done once after creating the shader
-	# NOTE: the shader must be bound when calling this function.
+    #
+    # Helper to set the default uniforms provided by ObjModel. This only needs to be done once after creating the shader
+    # NOTE: the shader must be bound when calling this function.
     def setDefaultUniformBindings(shaderProgram):
         assert glGetIntegerv(GL_CURRENT_PROGRAM) == shaderProgram
 
@@ -346,7 +347,7 @@ class ObjModel:
         glUniform1i(lu.getUniformLocationDebug(shaderProgram, "opacity_texture"), ObjModel.TU_Opacity);
         glUniform1i(lu.getUniformLocationDebug(shaderProgram, "specular_texture"), ObjModel.TU_Specular);
         glUniform1i(lu.getUniformLocationDebug(shaderProgram, "normal_texture"), ObjModel.TU_Normal);
-        #glUniformBlockBinding(shaderProgram, glGetUniformBlockIndex(shaderProgram, "MaterialProperties"), UBS_MaterialProperties);
+        # glUniformBlockBinding(shaderProgram, glGetUniformBlockIndex(shaderProgram, "MaterialProperties"), UBS_MaterialProperties);
 
     defaultVertexShader = """
 #version 330
