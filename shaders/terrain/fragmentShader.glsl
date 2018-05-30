@@ -56,14 +56,8 @@ void main()
         ).xyz;
     }
 
-    // vec3 materialColour = texture(ourTexture, textCoord).xyz;
-
-
-    vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, 
-        v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
-    fragmentColor = vec4(toSrgb(reflectedLight), 1.0);
-
-    // try to output fragment color as the terrain data first
+    // Now pick material color based on map data
+    // get normalised texture coordinates first
     vec2 normalized_text_coord = vec2(
         v2f_worldSpacePosition.x * v2f_xyNormScale.x, 
         v2f_worldSpacePosition.y * v2f_xyNormScale.y
@@ -71,6 +65,26 @@ void main()
     normalized_text_coord = (normalized_text_coord - 
         v2f_xyOffset * v2f_xyNormScale
     );
-    fragmentColor = vec4(texture(mapData, normalized_text_coord).xyz, 1.0);
+    float blue_channel = texture(mapData, normalized_text_coord).z;
+    if (blue_channel > 0.1) {
+        materialColour = mix(
+            texture(ourTexture, textCoord),
+            texture(pavingTexture, textCoord),
+            blue_channel
+        ).xyz;
+        // materialColour = texture(pavingTexture, textCoord).xyz;
+    }
+    // vec3 materialColour = texture(ourTexture, textCoord).xyz;
+
+
+    vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, 
+        v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
+    fragmentColor = vec4(toSrgb(reflectedLight), 1.0);
+
+
+    // try to output fragment color as the terrain data first
+    
+
+    // fragmentColor = vec4(texture(mapData, normalized_text_coord).xyz, 1.0);
 
 }
