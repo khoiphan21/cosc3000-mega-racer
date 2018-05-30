@@ -48,10 +48,14 @@ class Terrain:
     TU_Grass = 0
     TU_rock_high = 1
     TU_slope = 2
+    TU_paving = 3
+    TU_mapData = 4
 
     texture_id_grass = None
     texture_id_rock_high = None
     texture_id_slope = None
+    texture_id_paving = None
+    texture_id_mapData = None
 
 
     def render(self, view, renderingSystem):
@@ -75,6 +79,10 @@ class Terrain:
         glBindTexture(GL_TEXTURE_2D, self.texture_id_rock_high)
         glActiveTexture(GL_TEXTURE0 + self.TU_slope)
         glBindTexture(GL_TEXTURE_2D, self.texture_id_slope)
+        glActiveTexture(GL_TEXTURE0 + self.TU_paving)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id_paving)
+        glActiveTexture(GL_TEXTURE0 + self.TU_mapData)
+        glBindTexture(GL_TEXTURE_2D, self.texture_id_mapData)
 
 
 
@@ -91,7 +99,10 @@ class Terrain:
         glUniform1i(glGetUniformLocation(self.shader, "ourTexture"), self.TU_Grass)
         glUniform1i(glGetUniformLocation(self.shader, "rockHighTexture"), self.TU_rock_high)
         glUniform1i(glGetUniformLocation(self.shader, "slopeTexture"), self.TU_slope)
+        glUniform1i(glGetUniformLocation(self.shader, "pavingTexture"), self.TU_paving)
+        glUniform1i(glGetUniformLocation(self.shader, "mapData"), self.TU_mapData)
 
+        # unbinds the program
         glUseProgram(0)
 
     def load(self, imageName, renderingSystem):
@@ -117,7 +128,7 @@ class Terrain:
                     pt = vec3(xyPos[0], xyPos[1], zPos)
                     terrainVerts.append(pt)
 
-                    green = imagePixel[1];
+                    green = imagePixel[1]
                     if green == 255:
                         self.startLocations.append(pt)
                     if green == 128:
@@ -217,6 +228,15 @@ class Terrain:
         texture_file = 'data/rock 5.png'
         base_path, filename = os.path.split(texture_file)
         self.texture_id_slope = ObjModel.loadTexture(filename, base_path, True)
+
+        texture_file = 'data/paving 5.png'
+        base_path, filename = os.path.split(texture_file)
+        self.texture_id_paving = ObjModel.loadTexture(filename, base_path, True)
+
+        # Now load the special map data
+        texture_file = 'data/track_01_128.png'
+        base_path, filename = os.path.split(texture_file)
+        self.texture_id_mapData = ObjModel.loadTexture(filename, base_path, False)
 
 
 

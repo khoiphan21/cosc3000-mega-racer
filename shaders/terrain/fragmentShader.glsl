@@ -8,6 +8,7 @@ in VertexData
     vec3 v2f_viewSpaceNormal;
     vec3 v2f_worldSpacePosition;
     vec3 v2f_normalIn;
+    vec2 v2f_xyNormScale;
 };
 
 uniform float terrainHeightScale;
@@ -16,6 +17,8 @@ uniform float terrainTextureXyScale;
 uniform sampler2D ourTexture;
 uniform sampler2D rockHighTexture;
 uniform sampler2D slopeTexture;
+uniform sampler2D pavingTexture;
+uniform sampler2D mapData;
 
 out vec4 fragmentColor;
 
@@ -58,6 +61,17 @@ void main()
     vec3 reflectedLight = computeShading(materialColour, v2f_viewSpacePosition, 
         v2f_viewSpaceNormal, viewSpaceLightPosition, sunLightColour);
     fragmentColor = vec4(toSrgb(reflectedLight), 1.0);
-    // fragmentColor = vec4(toSrgb(vec3(v2f_height/terrainHeightScale)), 1.0);
+
+    // try to output fragment color as the terrain data first
+    vec2 normalized_text_coord = vec2(
+        v2f_worldSpacePosition.x * v2f_xyNormScale.x, 
+        v2f_worldSpacePosition.y * v2f_xyNormScale.y
+    );
+    normalized_text_coord = (normalized_text_coord + vec2(0.5, 0.5));
+    normalized_text_coord = vec2(
+        normalized_text_coord.x,
+        normalized_text_coord.y
+    );
+    fragmentColor = vec4(texture(mapData, normalized_text_coord).xyz, 1.0);
 
 }

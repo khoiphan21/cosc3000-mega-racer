@@ -21,6 +21,7 @@ out VertexData
     vec3 v2f_viewSpaceNormal;
     vec3 v2f_worldSpacePosition;
     vec3 v2f_normalIn;
+    vec2 v2f_xyNormScale;
 };
 
 void main()
@@ -31,6 +32,7 @@ void main()
     v2f_viewSpacePosition = (modelToViewTransform * vec4(positionIn, 1.0)).xyz;
     v2f_viewSpaceNormal = modelToViewNormalTransform * normalIn;
     v2f_normalIn = normalIn;
+    v2f_xyNormScale = xyNormScale;
     // gl_Position is a buit-in 'out'-variable that gets passed on to the clipping and rasterization stages (hardware fixed function).
     // it must be written by the vertex shader in order to produce any drawn geometry.
     // We transform the position using one matrix multiply from model to clip space. Note the added 1 at the end of the position to make the 3D

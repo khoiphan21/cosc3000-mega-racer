@@ -247,9 +247,9 @@ class ObjModel:
     def loadTexture(fileName, basePath, srgb):
         fullFileName = os.path.join(basePath, fileName)
 
-        width = 0;
-        height = 0;
-        channels = 0;
+        width = 0
+        height = 0
+        channels = 0
         try:
             im = Image.open(fullFileName)
             texId = glGenTextures(1)
@@ -273,7 +273,7 @@ class ObjModel:
             glBindTexture(GL_TEXTURE_2D, 0)
             return texId
         except:
-            print("WARNING: FAILED to load texture '%s'" % fileName);
+            print("WARNING: FAILED to load texture '%s'" % fileName)
 
         return -1
 
