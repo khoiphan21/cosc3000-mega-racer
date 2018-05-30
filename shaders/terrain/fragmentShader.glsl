@@ -9,6 +9,7 @@ in VertexData
     vec3 v2f_worldSpacePosition;
     vec3 v2f_normalIn;
     vec2 v2f_xyNormScale;
+    vec2 v2f_xyOffset;    
 };
 
 uniform float terrainHeightScale;
@@ -67,10 +68,8 @@ void main()
         v2f_worldSpacePosition.x * v2f_xyNormScale.x, 
         v2f_worldSpacePosition.y * v2f_xyNormScale.y
     );
-    normalized_text_coord = (normalized_text_coord + vec2(0.5, 0.5));
-    normalized_text_coord = vec2(
-        normalized_text_coord.x,
-        normalized_text_coord.y
+    normalized_text_coord = (normalized_text_coord - 
+        v2f_xyOffset * v2f_xyNormScale
     );
     fragmentColor = vec4(texture(mapData, normalized_text_coord).xyz, 1.0);
 
